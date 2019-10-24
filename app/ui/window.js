@@ -6,7 +6,7 @@ const fileUriToPath = require('file-uri-to-path');
 const isDev = require('electron-is-dev');
 const updater = require('../updater');
 const toElectronBackgroundColor = require('../utils/to-electron-background-color');
-const {icon, homeDirectory} = require('../config/paths');
+const {icon, cfgDir} = require('../config/paths');
 const createRPC = require('../rpc');
 const notify = require('../notify');
 const fetchNotifications = require('../notifications');
@@ -38,6 +38,7 @@ module.exports = class Window {
         show: process.env.HYPER_DEBUG || process.env.HYPERTERM_DEBUG || isDev,
         acceptFirstMouse: true,
         webPreferences: {
+          nodeIntegration: true,
           navigateOnDragDrop: true
         }
       },
@@ -54,6 +55,14 @@ module.exports = class Window {
       const cfg_ = app.plugins.getDecoratedConfig();
       window.setBackgroundColor(toElectronBackgroundColor(cfg_.backgroundColor || '#000'));
     };
+
+    // set working directory
+    let workingDirectory = cfgDir;
+    if (process.argv[1] && isAbsolute(process.argv[1])) {
+      workingDirectory = process.argv[1];
+    } else if (cfg.workingDirectory && isAbsolute(cfg.workingDirectory)) {
+      workingDirectory = cfg.workingDirectory;
+    }
 
     // config changes
     const cfgUnsubscribe = app.config.subscribe(() => {
@@ -80,7 +89,7 @@ module.exports = class Window {
       // If no callback is passed to createWindow,
       // a new session will be created by default.
       if (!fn) {
-        fn = win => win.rpc.emit('termgroup add req');
+        fn = win => win.rpc.emit('termgroup add req', {});
       }
 
       // app.windowCallback is the createWindow callback
@@ -102,11 +111,10 @@ module.exports = class Window {
     function createSession(extraOptions = {}) {
       const uid = uuid.v4();
 
+      // remove the rows and cols, the wrong value of them will break layout when init create
       const defaultOptions = Object.assign(
         {
-          rows: 40,
-          cols: 100,
-          cwd: process.argv[1] && isAbsolute(process.argv[1]) ? process.argv[1] : homeDirectory,
+          cwd: workingDirectory,
           splitDirection: undefined,
           shell: cfg.shell,
           shellArgs: cfg.shellArgs && Array.from(cfg.shellArgs)
@@ -158,7 +166,8 @@ module.exports = class Window {
         uid: options.uid,
         splitDirection: options.splitDirection,
         shell: session.shell,
-        pid: session.pty.pid
+        pid: session.pty ? session.pty.pid : null,
+        activeUid: options.activeUid
       });
 
       // If this is the initial session, flush any events that might have

@@ -57,6 +57,9 @@ module.exports = {
     // custom CSS to embed in the terminal window
     termCSS: '',
 
+    // set custom startup directory (must be an absolute path)
+    workingDirectory: '',
+
     // if you're using a Linux setup which show native menus, set to false
     // default: `true` on Linux, `true` on Windows, ignored on macOS
     showHamburgerMenu: '',
@@ -89,6 +92,8 @@ module.exports = {
       lightMagenta: '#FD7CFC',
       lightCyan: '#68FDFE',
       lightWhite: '#FFFFFF',
+      limeGreen: '#32CD32',
+      lightCoral: '#F08080',
     },
 
     // the shell to run when spawning a new session (i.e. /usr/local/bin/fish)
@@ -122,8 +127,13 @@ module.exports = {
     // for environment variables
     env: {},
 
-    // set to `false` for no bell
+    // Supported Options:
+    //  1. 'SOUND' -> Enables the bell as a sound
+    //  2. false: turns off the bell
     bell: 'SOUND',
+
+    // An absolute file path to a sound file on the machine.
+    // bellSoundURL: '/path/to/sound/file',
 
     // if `true` (without backticks and without quotes), selected text will automatically be copied to the clipboard
     copyOnSelect: false,
@@ -140,12 +150,12 @@ module.exports = {
     // (inside tmux or vim with mouse mode enabled for example).
     macOptionSelectionMode: 'vertical',
 
-    // URL to custom bell
-    // bellSoundURL: 'http://example.com/bell.mp3',
-
     // Whether to use the WebGL renderer. Set it to false to use canvas-based
     // rendering (slower, but supports transparent backgrounds)
     webGLRenderer: true,
+
+    // if `true` (without backticks and without quotes), Hyper will ignore ligatures provided by some fonts
+    disableLigatures: false,
 
     // for advanced config flags please refer to https://hyper.is/#cfg
   },
